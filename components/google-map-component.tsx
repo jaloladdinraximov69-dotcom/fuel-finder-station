@@ -51,22 +51,26 @@ export default function GoogleMapComponent({
       try {
         const apiKey = await getGoogleMapsApiKey()
         
+        window.gm_authFailure = () => {
+          console.error("[v0] Google Maps authentication failed - billing may not be enabled")
+          setApiError(true)
+        }
+        
         const script = document.createElement("script")
         script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`
         script.async = true
         script.defer = true
-        script.onload = () => setIsMapLoaded(true)
-        script.onerror = () => {
-          console.error("Failed to load Google Maps")
-          setApiError(true)
+        script.onload = () => {
+          console.log("[v0] Google Maps script loaded successfully")
+          setIsMapLoaded(true)
         }
-        window.gm_authFailure = () => {
-          console.error("Google Maps authentication failed")
+        script.onerror = () => {
+          console.error("[v0] Failed to load Google Maps script")
           setApiError(true)
         }
         document.head.appendChild(script)
       } catch (error) {
-        console.error("Error loading Google Maps:", error)
+        console.error("[v0] Error loading Google Maps:", error)
         setApiError(true)
       }
     }
@@ -111,7 +115,7 @@ export default function GoogleMapComponent({
         map: map.current,
         title: station.name,
         icon: {
-          url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23EF4444" width="40" height="40"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>',
+          url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23EF4444" width="40" height="40"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8z"/></svg>',
           scaledSize: new window.google.maps.Size(40, 40),
           anchor: new window.google.maps.Point(20, 40),
         },
@@ -167,42 +171,28 @@ export default function GoogleMapComponent({
 
   if (apiError) {
     return (
-      <div className="w-full h-96 lg:h-full rounded-xl shadow-lg bg-amber-50 border border-amber-200 flex items-center justify-center">
-        <div className="text-center p-6 max-w-lg">
-          <svg className="w-12 h-12 text-amber-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <p className="text-amber-700 font-semibold mb-3">
-            {language === "uz" ? "Xarita yuklanmadi" : "Map failed to load"}
+      <div className="w-full h-96 lg:h-full rounded-xl shadow-lg bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200 flex items-center justify-center p-6">
+        <div className="text-center max-w-md">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
+            <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            {language === "uz" 
+              ? "Xarita hozircha mavjud emas" 
+              : "Map temporarily unavailable"}
+          </h3>
+          <p className="text-sm text-gray-600 mb-4">
+            {language === "uz" 
+              ? "Zapravkalar ro'yxatidan foydalanib, kerakli shoxobchani toping va yo'nalish oling" 
+              : "Use the stations list to find your location and get directions"}
           </p>
-          <div className="text-amber-600 text-sm space-y-2 text-left">
-            <p className="font-medium">
-              {language === "uz" 
-                ? "Mumkin bo'lgan sabablar:" 
-                : "Possible causes:"}
-            </p>
-            <ul className="list-disc list-inside space-y-1">
-              <li>
-                {language === "uz" 
-                  ? "Google Maps API kaliti sozlanmagan" 
-                  : "Google Maps API key not configured"}
-              </li>
-              <li>
-                {language === "uz" 
-                  ? "API kaliti uchun to'lov yoqilmagan (Billing)" 
-                  : "Billing not enabled for API key"}
-              </li>
-              <li>
-                {language === "uz" 
-                  ? "API kaliti cheklangan yoki noto'g'ri" 
-                  : "API key restricted or invalid"}
-              </li>
-            </ul>
-            <p className="mt-3 text-xs">
-              {language === "uz" 
-                ? "Google Cloud Console'da billing'ni yoqing va GOOGLE_MAPS_API_KEY muhit o'zgaruvchisini tekshiring." 
-                : "Enable billing in Google Cloud Console and verify GOOGLE_MAPS_API_KEY environment variable."}
-            </p>
+          <div className="flex items-center justify-center gap-2 text-xs text-blue-600">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+            <span>{language === "uz" ? "Xarita tez orada qayta ishga tushadi" : "Map will be available soon"}</span>
           </div>
         </div>
       </div>
