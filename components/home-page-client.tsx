@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { MapPin } from 'lucide-react'
 import StationsList from './stations-list'
-import GoogleMapComponent from './google-map-component'
+import LeafletMapComponent from './leaflet-map-component'
 import LanguageSwitcher from './language-switcher'
 import { useLanguage } from '@/hooks/use-language'
 import { mockStations, type Station } from '@/lib/stations-data'
@@ -101,7 +101,7 @@ export default function HomePageClient() {
               />
             </div>
             <div className="w-full lg:w-3/5 h-1/2 lg:h-full p-4">
-              <GoogleMapComponent
+              <LeafletMapComponent
                 selectedStation={selectedStation}
                 onStationSelect={setSelectedStation}
                 stations={stations}
