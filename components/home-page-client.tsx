@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { MapPin } from 'lucide-react'
-import GoogleMapComponent from './google-map-component'
 import StationsList from './stations-list'
+import GoogleMapComponent from './google-map-component'
 import LanguageSwitcher from './language-switcher'
 import { useLanguage } from '@/hooks/use-language'
 import { mockStations, type Station } from '@/lib/stations-data'
@@ -92,19 +92,19 @@ export default function HomePageClient() {
           </div>
         ) : (
           <div className="flex flex-col lg:flex-row h-[calc(100vh-80px)]">
-            <div className="lg:w-2/5 h-1/2 lg:h-full overflow-hidden">
-              <GoogleMapComponent
-                selectedStation={selectedStation}
-                onStationSelect={setSelectedStation}
-                stations={stations}
-              />
-            </div>
-            <div className="lg:w-3/5 h-1/2 lg:h-full overflow-y-auto">
+            <div className="w-full lg:w-2/5 h-1/2 lg:h-full overflow-y-auto">
               <StationsList
                 stations={stations}
                 onStationSelect={setSelectedStation}
                 selectedStation={selectedStation}
                 onFilterChange={handleFilterChange}
+              />
+            </div>
+            <div className="w-full lg:w-3/5 h-1/2 lg:h-full p-4">
+              <GoogleMapComponent
+                selectedStation={selectedStation}
+                onStationSelect={setSelectedStation}
+                stations={stations}
               />
             </div>
           </div>
