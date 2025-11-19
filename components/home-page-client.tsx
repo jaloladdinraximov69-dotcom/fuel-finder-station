@@ -1,24 +1,21 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import GoogleMapComponent from "@/components/google-map-component"
-import StationsList from "@/components/stations-list"
-import LanguageSwitcher from "@/components/language-switcher"
-import { useLanguage } from "@/hooks/use-language"
-
-interface UserLocation {
-  latitude: number
-  longitude: number
-}
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { MapPin } from 'lucide-react'
+import GoogleMapComponent from './google-map-component'
+import StationsList from './stations-list'
+import LanguageSwitcher from './language-switcher'
+import { useLanguage } from '@/hooks/use-language'
+import { mockStations, type Station } from '@/lib/stations-data'
 
 export default function HomePageClient() {
   const router = useRouter()
   const { t } = useLanguage()
-  const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
-  const [selectedStation, setSelectedStation] = useState<number | null>(null)
+  const [selectedStation, setSelectedStation] = useState<Station | null>(null)
+  const [stations, setStations] = useState<Station[]>(mockStations)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     // Check authentication
@@ -27,32 +24,27 @@ export default function HomePageClient() {
       router.push("/")
       return
     }
+  }, [router])
 
-    // Get user location
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          })
-          setLoading(false)
-        },
-        (err) => {
-          console.error("Location error:", err)
-          // Default to Tashkent center if location fails
-          setUserLocation({
-            latitude: 41.2995,
-            longitude: 69.2401,
-          })
-          setLoading(false)
-        },
+  const handleFilterChange = (fuelType: string, sortBy: string) => {
+    let filtered = [...mockStations]
+    
+    // Filter by fuel type
+    if (fuelType !== 'all') {
+      filtered = filtered.filter(station => 
+        station.fuel_types.includes(fuelType)
       )
-    } else {
-      setError(t("location_not_supported"))
-      setLoading(false)
     }
-  }, [router, t])
+    
+    // Sort stations
+    if (sortBy === 'price') {
+      filtered.sort((a, b) => a.price - b.price)
+    } else if (sortBy === 'rating') {
+      filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0))
+    }
+    
+    setStations(filtered)
+  }
 
   const handleLogout = () => {
     localStorage.removeItem("user_authenticated")
@@ -69,7 +61,7 @@ export default function HomePageClient() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-foreground">Smart Fuel Finder</h1>
-              <p className="text-xs text-muted-foreground">{t("find_nearest_stations")}</p>
+              <p className="text-xs text-muted-foreground">{t("find_nearest_stations", "Find nearest gas stations", "Eng yaqin zapravkalarni toping")}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -78,44 +70,41 @@ export default function HomePageClient() {
               onClick={handleLogout}
               className="px-4 py-2 bg-muted hover:bg-border text-foreground rounded-lg font-medium transition"
             >
-              {t("logout")}
+              {t("logout", "Logout", "Chiqish")}
             </button>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        {loading && (
-          <div className="flex items-center justify-center h-96">
+      <main>
+        {loading ? (
+          <div className="flex items-center justify-center h-[calc(100vh-80px)]">
             <div className="text-center">
-              <div className="animate-spin w-12 h-12 border-4 border-slate-300 border-t-blue-600 rounded-full mx-auto mb-4"></div>
-              <p className="text-slate-600">{t("loading_location")}</p>
+              <MapPin className="w-12 h-12 mx-auto mb-4 animate-pulse text-primary" />
+              <p className="text-muted-foreground">{t("loading", "Loading...", "Yuklanmoqda...")}</p>
             </div>
           </div>
-        )}
-
-        {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">{error}</div>}
-
-        {!loading && userLocation && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Map */}
-            <div className="lg:col-span-2">
+        ) : error ? (
+          <div className="flex items-center justify-center h-[calc(100vh-80px)]">
+            <div className="text-center text-red-500">
+              <p>{error}</p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col lg:flex-row h-[calc(100vh-80px)]">
+            <div className="lg:w-2/5 h-1/2 lg:h-full overflow-hidden">
               <GoogleMapComponent
-                userLocation={userLocation}
-                selectedStationId={selectedStation?.toString()}
-                onStationSelect={(station) => {
-                  setSelectedStation(station.id ? Number.parseInt(station.id) : null)
-                }}
+                selectedStation={selectedStation}
+                onStationSelect={setSelectedStation}
+                stations={stations}
               />
             </div>
-
-            {/* Stations List */}
-            <div className="lg:col-span-1">
+            <div className="lg:w-3/5 h-1/2 lg:h-full overflow-y-auto">
               <StationsList
-                userLocation={userLocation}
-                onSelectStation={setSelectedStation}
-                selectedStationId={selectedStation}
+                stations={stations}
+                onStationSelect={setSelectedStation}
+                selectedStation={selectedStation}
+                onFilterChange={handleFilterChange}
               />
             </div>
           </div>

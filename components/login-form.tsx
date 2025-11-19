@@ -131,7 +131,7 @@ export default function LoginForm({ onSuccess, onToggle }: LoginFormProps) {
         <p className="text-white/70 text-sm">
           Akkauntingiz yo\'qmi?{" "}
           <button onClick={onToggle} className="text-white font-semibold hover:underline">
-            Ro\'yxatdan o\'tish
+            Ro\'yxatdan o\'tishga
           </button>
         </p>
       </div>
