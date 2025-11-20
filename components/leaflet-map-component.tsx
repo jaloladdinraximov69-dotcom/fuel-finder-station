@@ -122,7 +122,7 @@ export default function LeafletMapComponent({ selectedStation, onStationSelect, 
   }, [selectedStation])
 
   return (
-    <div className="h-full w-full rounded-lg overflow-hidden shadow-lg">
+    <div className="h-full w-full rounded-lg overflow-hidden shadow-lg relative z-0">
       <div id="leaflet-map" className="h-full w-full" />
     </div>
   )
