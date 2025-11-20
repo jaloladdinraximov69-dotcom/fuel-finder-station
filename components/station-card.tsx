@@ -1,8 +1,8 @@
 "use client"
 
 import { useLanguage } from "@/hooks/use-language"
-import { Star, Fuel, Navigation } from 'lucide-react'
-import type { Station } from '@/lib/stations-data'
+import { Star, Fuel, Navigation } from "lucide-react"
+import type { Station } from "@/lib/stations-data"
 
 interface StationCardProps {
   station: Station
@@ -14,10 +14,13 @@ export default function StationCard({ station, isSelected, onSelect }: StationCa
   const { t } = useLanguage()
 
   const handleGetDirections = () => {
-    const query = encodeURIComponent(`${station.name}, ${station.address}`)
-    
-    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${station.latitude},${station.longitude}&destination_place_id=&travelmode=driving`
-    window.open(mapsUrl, "_blank")
+    if (station.googleMapsUrl) {
+      window.open(station.googleMapsUrl, "_blank")
+    } else {
+      // Fallback to the old method if no Google Maps URL is provided
+      const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${station.latitude},${station.longitude}&destination_place_id=&travelmode=driving`
+      window.open(mapsUrl, "_blank")
+    }
   }
 
   return (
@@ -46,9 +49,7 @@ export default function StationCard({ station, isSelected, onSelect }: StationCa
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Fuel className="w-4 h-4 text-primary" />
-            <span className="text-sm font-semibold text-foreground">
-              {t("price", "Price", "Narx")}
-            </span>
+            <span className="text-sm font-semibold text-foreground">{t("price", "Price", "Narx")}</span>
           </div>
           <span className="font-bold text-primary">
             {new Intl.NumberFormat("uz-UZ").format(station.price)} {t("som", "som", "so'm")}
@@ -56,10 +57,7 @@ export default function StationCard({ station, isSelected, onSelect }: StationCa
         </div>
         <div className="flex flex-wrap gap-1 mt-2">
           {station.fuel_types.map((fuelType) => (
-            <span
-              key={fuelType}
-              className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-md font-medium"
-            >
+            <span key={fuelType} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-md font-medium">
               {fuelType}
             </span>
           ))}
@@ -68,9 +66,7 @@ export default function StationCard({ station, isSelected, onSelect }: StationCa
 
       <div className="flex justify-between items-center">
         {station.distance && (
-          <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded-lg">
-            {station.distance}
-          </span>
+          <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded-lg">{station.distance}</span>
         )}
         <button
           onClick={(e) => {
