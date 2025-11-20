@@ -53,15 +53,32 @@ export default function ReviewDialog({ stationId, stationName, onReviewAdded }: 
     setIsSubmitting(true)
 
     try {
-      const supabase = createClient()
-      const { error } = await supabase.from("reviews").insert({
-        station_id: stationId,
-        user_name: userName.trim(),
+      console.log("[v0] Starting review submission:", {
+        stationId,
+        userName: userName.trim(),
         rating,
-        comment: comment.trim() || null,
+        comment: comment.trim(),
       })
 
+      const supabase = createClient()
+
+      console.log("[v0] Supabase client created, attempting insert...")
+
+      const { data, error } = await supabase
+        .from("reviews")
+        .insert({
+          station_id: stationId,
+          user_name: userName.trim(),
+          rating,
+          comment: comment.trim() || null,
+        })
+        .select()
+
+      console.log("[v0] Insert response:", { data, error })
+
       if (error) throw error
+
+      console.log("[v0] Review added successfully")
 
       toast({
         title: t("success", "Success", "Muvaffaqiyatli"),
@@ -80,7 +97,11 @@ export default function ReviewDialog({ stationId, stationName, onReviewAdded }: 
       console.error("[v0] Error adding review:", error)
       toast({
         title: t("error", "Error", "Xatolik"),
-        description: t("reviewError", "Failed to add review", "Sharh qo'shilmadi"),
+        description: t(
+          "reviewError",
+          "Failed to add review. Please try again.",
+          "Sharh qo'shilmadi. Qayta urinib ko'ring.",
+        ),
         variant: "destructive",
       })
     } finally {
